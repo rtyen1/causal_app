@@ -13,6 +13,7 @@ from graphviz import Digraph
 import base64
 from io import BytesIO
 import random
+from chordal_ver2 import *
 
 def create_image_figure(image_data, title=""):
     """Create a figure with proper aspect ratio"""
@@ -439,6 +440,54 @@ app.layout = html.Div([
 ])
 
 
+# Callback for random chordal graph generation
+@callback(
+    [Output('chordal-results', 'children'),
+     Output('chordal-graph', 'figure')],
+    [Input('generate-chordal-btn', 'n_clicks')],
+    [State('chordal-vertices', 'value'),
+     State('chordal-edges', 'value')],
+    prevent_initial_call=True
+)
+def generate_chordal_graph(n_clicks, vertices, edges):
+    if not n_clicks:
+        raise dash.exceptions.PreventUpdate
+    
+    # Generate random chordal graph
+    G = random_connected_chordal_ver3(vertices, edges)
+    print(1)
+    
+    if G == -1:
+        return html.Div([
+            html.P("Error:", style={"color": "red"}),
+            html.P("Failed to generate graph with given parameters")
+        ]), {}
+    
+    # Create visualization using plot_graph from rcbgk
+    image_data = plot_graph(nx.Graph(G), 
+                          title="Generated Chordal Graph")
+    
+    # Create figure with the image
+    fig = create_image_figure(image_data, "Generated Chordal Graph")
+    
+    # 修改这里：将字典转换为带引号的字符串表示
+    # 将数字列表转换为带引号的字符串列表
+    formatted_dict = {}
+    for k, v in G.items():
+        formatted_dict[str(k)] = [str(x) for x in v]
+    graph_str = json.dumps(formatted_dict)
+    
+    # Create info text
+    info = html.Div([
+        html.H4("Graph Properties:", style={"marginBottom": "10px"}),
+        html.P(f"Number of vertices: {len(G)}"),
+        html.P(f"Number of edges: {sum(len(v) for v in G.values())//2}"),
+        html.P(f"Is chordal: {nx.is_chordal(nx.Graph(G))}"),
+        html.P("Graph as dictionary:"),
+        html.Pre(graph_str)  # 使用修改后的字符串
+    ])
+    
+    return info, fig
 
 # Callback for graph size evaluation
 @callback(
