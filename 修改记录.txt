@@ -1,0 +1,30 @@
+rcbgk.py 425-436行：(restriction函数）
+ if candidates:
+        for c in candidates:
+            c_idx = vset.index(c)
+            adj_nodes = np.where(amat_udir_sub[c_idx] == 1)[0]
+            
+            # Check if node forms a complete subgraph with its neighbors
+            if len(adj_nodes) <= 1:
+                pln.append(c)
+            else:
+                adj_submat = amat_udir_sub[np.ix_(adj_nodes, adj_nodes)]
+                if np.all(adj_submat == 1):
+                    pln.append(c)
+对应的R代码中要求x是simplicial的，即x和它在无向子图中邻居诱导的子图是完全图。而python代码中判断成了要求对角线也是1，这是不可能的。所以pln总是0.
+修改：将np.all(adj_submat == 1)改为np.sum(adj_submat == 0) == len(adj_nodes)
+
+rcbgk.py中的construct_mpdag函数也不对，一开始的版本没有用到R中用到的construct_moc（也没用到fast版本中用到的restriction），后来用cursor又改了一遍，但是没有像R中一样对每个节点构建moc，而是只对dcc中有的节点构建了。
+修改：将for x in dcc	改为for x in label_names
+
+rcbgk.R中criticalSet函数有一句C <- unique(C[C!=0])，这句之前定义C <- matrix(0, 1, n)然后逐渐往C中添加元素，python没有识别到对应的意思。
+criticalSet函数中的初始值和迭代设置并没有很好地改到python中。
+修改：将python代码中改为C = []，中间为C.append，最后为C = list(set(C))。此外，将初始化从S = [(x,0,0)]改为S = [(x,-1,-1)]，中间判断是否为初始点从e[1]!=0改为e[1]!=-1。这是因为R中0不作为下标，而python中0可以作为下标。
+
+genConsistentCbgk大幅度修改以与R中函数一致，加入对pgmpy的依赖
+chordal_ver2.py中576行left改为list(left)，因为set不能sample
+大幅度修改true_cov函数，与R保持一致
+大幅度修改ida函数，并添加hasExtension函数。hasExtension函数通过IDA2020中的定理局部判断是否可以拓展x局部结构。ida函数仿照pcalg中的ida。
+
+2025/01/08:
+修改了true_cov函数第1130行：B改成B.T，使得效果与pcalg中的trueCov函数功能一致。
