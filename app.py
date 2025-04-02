@@ -158,7 +158,7 @@ app.layout = html.Div([
                             dcc.Textarea(
                                 id='convert-input',
                                 placeholder="Enter graph as dictionary",
-                                value="{0:{1,2}, 1:{0,2}, 2:{0,1}}",
+                                value="{0:{1,2}, 1:{2}, 2:{}}",
                                 style={'width': '100%', 'height': 100}
                             ),
                             html.Label("Conversion Type:"),
@@ -184,7 +184,7 @@ app.layout = html.Div([
                                 dcc.Textarea(
                                     id='second-graph-input',
                                     placeholder="Enter second graph for comparison",
-                                    value="{0:{1,2}, 1:{0,2}, 2:{0,1}}",
+                                    value="{0:{1,2}, 1:{2}, 2:{}}",
                                     style={'width': '100%', 'height': 100}
                                 ),
                             ],
@@ -792,10 +792,10 @@ def convert_to_mpdag(n_clicks, cpdag_input, bgk_input):
             output_graph.add_edge(u_label, v_label)
         
         # Create visualization
-        image_data = plot_graph(output_graph, title="MPDAG with Background Knowledge")
+        image_data = plot_graph(output_graph, title="MPDAG")
         
         # Create figure
-        fig = create_image_figure(image_data, "MPDAG with Background Knowledge")
+        fig = create_image_figure(image_data, "MPDAG")
         
         # Create results text
         results = html.Div([
@@ -863,10 +863,10 @@ def generate_background_knowledge(n_clicks, cpdag_input, num_constraints, bgk_ty
         bgk = genConsistentCbgk(cpdag, num_constraints, type_map[bgk_type])
         
         # Create visualization
-        image_data = plot_graph_with_bgk(cpdag, bgk, title="CPDAG with Background Knowledge")
+        image_data = plot_graph_with_bgk(cpdag, bgk, title="CPDAG")
         
         # Create figure
-        fig = create_image_figure(image_data, "CPDAG with Background Knowledge")
+        fig = create_image_figure(image_data, "CPDAG")
         
         # Create results text
         results = html.Div([
@@ -1439,7 +1439,7 @@ def analyze_causal_effects(n_clicks, bgk_input, source, target, cpdag_dict, mcov
         node_colors[target] = '#e67e22'  # target节点橙色
         
         image_data = plot_graph(mpdag, 
-                               title="MPDAG with Background Knowledge",
+                               title="MPDAG",
                                edge_colors=edge_colors,
                                node_colors=node_colors)
         
